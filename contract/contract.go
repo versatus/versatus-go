@@ -6,33 +6,48 @@ import (
 	"os"
 )
 
-type ContractInput struct {
-	Version       int32  `json:"version"`
-	TxId          string `json:"txId"`
-	LastBlockTime int64  `json:"lastBlockTime"`
+type ApplicationInputs struct {
+	ContractFn string   `json:"contractFn"`
+	Amount     uint64   `json:"amount"`
+	Recipients []string `json:"recipients"`
 }
 
-type ContractResult struct {
-	Result int32 `json:"result"`
-	Value  int32 `json:"value"`
+type ProtocolInputs struct {
+	Version     int32  `json:"version"`
+	BlockHeight uint64 `json:"blockHeight"`
+	BlockTime   uint64 `json:"blockTime"`
 }
 
-type ContractOutput struct {
-	Stdin  ContractInput     `json:"stdin"`
-	Result ContractResult    `json:"result"`
-	Args   []string          `json:"args"`
-	Env    map[string]string `json:"env"`
+type AccountInfo struct {
+	AccountAddress string `json:"accountAddress"`
+	AccountBalance string `json:"accountBalance"`
 }
 
-func ParseInput() (error, ContractOutput) {
-	var ret ContractOutput
+type ComputeInputs struct {
+	Version           int32             `json:"version"`
+	AccountInfo       AccountInfo       `json:"accountInfo"`
+	ProtocolInputs    ProtocolInputs    `json:"protocolInput"`
+	ApplicationInputs ApplicationInputs `json:"applicationInput"`
+}
 
-	err := json.NewDecoder(os.Stdin).Decode(&ret.Stdin)
+type ComputeOutputs struct {
+	Transactions []ComputeTransaction `json:"transactions"`
+}
+
+type ComputeTransaction struct {
+	Recipient string `json:"recipient"`
+	Amount    uint64 `json:"amount"`
+}
+
+func ParseInput() (error, ComputeInputs) {
+	var ret ComputeInputs
+
+	err := json.NewDecoder(os.Stdin).Decode(&ret)
 
 	return err, ret
 }
 
-func SendOutput(out ContractOutput) error {
+func SendOutput(out ComputeOutputs) error {
 	j, err := json.Marshal(&out)
 
 	if err == nil {
